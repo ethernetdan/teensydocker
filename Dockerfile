@@ -2,10 +2,10 @@ FROM debian:8
 
 # Adapted from http://www.omnicron.com/~ford/teensy/setup-teensy
 
-RUN PACKAGES="libusb-dev git make gcc-arm-none-eabi gcc unzip" && \
+RUN PACKAGES="libusb-dev git make curl gcc-arm-none-eabi gcc unzip" && \
     export DEBIAN_FRONTEND=noninteractive && \
     apt-get update && \
-    apt-get install -y $PACKAGES curl && \
+    apt-get install -y $PACKAGES && \
     apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 ENV COMMIT 605d9dc91102c4fa99c1bd37ff51571e7e672773
