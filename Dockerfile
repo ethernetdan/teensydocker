@@ -2,8 +2,11 @@ FROM debian:8
 
 # Adapted from http://www.omnicron.com/~ford/teensy/setup-teensy
 
-RUN apt-get update
-RUN apt-get install -y libusb-dev git make gcc-arm-none-eabi gcc unzip
+RUN PACKAGES="libusb-dev git make gcc-arm-none-eabi gcc unzip" && \
+    export DEBIAN_FRONTEND=noninteractive && \
+    apt-get update && \
+    apt-get install -y $PACKAGES curl && \
+    apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 ENV COMMIT 605d9dc91102c4fa99c1bd37ff51571e7e672773
 
@@ -14,20 +17,23 @@ RUN git clone https://github.com/PaulStoffregen/teensy_loader_cli.git /loader &&
     rm -rf /loader
 
 # Configure device permissions
-ADD http://www.pjrc.com/teensy/49-teensy.rules /etc/udev/rules.d/49-teensy.rules
+RUN curl -o /etc/udev/rules.d/49-teensy.rules http://www.pjrc.com/teensy/49-teensy.rules
 
 # Download Teensy headers
-ADD http://www.seanet.com/~karllunt/Teensy3xlib.zip /downloads/teensy.zip
-RUN unzip -aa -d /teensy /downloads/teensy.zip
+RUN curl -o /teensy.zip http://www.seanet.com/~karllunt/Teensy3xlib.zip && \
+    unzip -aa -d /teensy /teensy.zip && \
+    rm /teensy.zip
 
 # Apply patch
 RUN sed -i s/mk20d7/MK20D7/ /teensy/include/common.h
 
-COPY ./src /src
-COPY Makefile /src/Makefile
+# Copy code
+COPY . /src
 WORKDIR /src
 
+# Build
 RUN make build
+
+# Flash
 ENTRYPOINT ["make"]
-
-
+CMD ["deploy"]

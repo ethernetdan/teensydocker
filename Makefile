@@ -45,31 +45,30 @@ MCU = mk20dx256
 #########################################################################
 # Project details
 
-PROJECT=./src/blinky
+PROJECT=blinky
 
 OPTIMIZATION = -O0
 # CFLAGS += -Wall
 # DEBUG = -g
 # LDFLAGS += -Wl,-Map=$(PROJECT).map -Wl,--cref
 
-.PHONY: build docker-build docker-flash
+.PHONY: build docker-build docker-deploy
 OBJECTS	= $(PROJECT).o
 
 # Docker Image
 IMAGE = "ethernetdan/teensy"
-all: docker-build docker-flash
+all: docker-build docker-deploy
 
-docker-flash:
+docker-deploy:
 	docker run -i -t --privileged \
-		-v /dev/ttyS1:/dev/ttyS1 \
+		-v /dev/bus/usb:/dev/bus/usb \
 		$(IMAGE)
 
 docker-build:
 	docker build -t $(IMAGE) .
 
 deploy: build
-	teensy_loader_cli --mmcu=$(MCU) -w -v $(PROJECT).hex
-
+	teensy_loader_cli --mcu=$(MCU) -w -v $(PROJECT).hex
 
 build: $(PROJECT).hex $(PROJECT).bin stats dump
 
